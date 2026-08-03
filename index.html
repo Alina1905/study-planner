@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="almanac">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F6F5C">
+<title>Rehearsal — Matric Study Planner</title>
+<meta name="description" content="An AI-assisted study planner built for Pakistani Matric students.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===================== ONBOARDING ===================== -->
+<div id="onboarding-screen">
+  <div class="ob-hero">
+    <div class="stamp">📋</div>
+    <div class="kicker">Roll No. Slip · Class IX–X</div>
+    <h1>Rehearsal</h1>
+    <p>Your board-exam study planner — built for matric students in Pakistan, with an AI coach on call.</p>
+  </div>
+
+  <div class="ob-body">
+    <!-- Step 1: name -->
+    <div class="ob-step active" data-step="1">
+      <label class="field-label">What should we call you?</label>
+      <input type="text" id="ob-name" placeholder="e.g. Ayesha">
+      <label class="field-label">Board exam date (optional)</label>
+      <input type="date" id="ob-examdate">
+    </div>
+
+    <!-- Step 2: group -->
+    <div class="ob-step" data-step="2">
+      <label class="field-label">Choose your matric group</label>
+      <div class="group-grid" id="ob-group-grid"></div>
+    </div>
+
+    <!-- Step 3: theme -->
+    <div class="ob-step" data-step="3">
+      <label class="field-label">Pick a look — you can change this anytime</label>
+      <div class="theme-grid" id="ob-theme-grid"></div>
+    </div>
+  </div>
+
+  <div class="ob-actions">
+    <button class="btn btn-ghost" id="ob-back" style="display:none;">Back</button>
+    <button class="btn btn-primary" id="ob-next">Continue</button>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL ===================== -->
+<div id="app-shell" style="display:none;">
+
+  <!-- ---------- HOME ---------- -->
+  <main class="view active" id="view-home">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow" id="home-date"></div>
+        <h1 id="home-greeting">Hi 👋</h1>
+      </div>
+      <div class="streak-pill">🔥 <span id="home-streak">0</span></div>
+    </div>
+
+    <div style="padding:0 20px;">
+      <div class="group-pill">
+        <span id="home-group-name">—</span>
+        <button data-nav="settings">change</button>
+      </div>
+
+      <div class="quote-card">
+        <p id="home-quote">Loading…</p>
+        <button id="quote-refresh" class="quote-refresh-btn" title="New quote" aria-label="New quote">↻</button>
+        <div class="qmark">"</div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-box"><div class="num" id="stat-hours">0</div><div class="lbl">Hrs this week</div></div>
+        <div class="stat-box"><div class="num" id="stat-topics">0</div><div class="lbl">Topics done</div></div>
+        <div class="stat-box"><div class="num" id="stat-exam">—</div><div class="lbl">Days to exam</div></div>
+      </div>
+
+      <div class="section-title"><h2>Today's plan</h2><button class="link-btn" data-nav="planner">Open planner</button></div>
+      <div class="card" id="home-today-list"></div>
+
+      <div class="section-title"><h2>Your subjects</h2><button class="link-btn" data-nav="subjects">See all</button></div>
+      <div id="home-subjects-preview"></div>
+    </div>
+  </main>
+
+  <!-- ---------- SUBJECTS ---------- -->
+  <main class="view" id="view-subjects">
+    <div class="topbar">
+      <div><div class="eyebrow">Class IX–X</div><h1>Subjects</h1></div>
+    </div>
+    <div style="padding:0 20px;" id="subjects-list"></div>
+  </main>
+
+  <!-- ---------- SUBJECT DETAIL ---------- -->
+  <main class="view" id="view-subject-detail">
+    <div class="topbar">
+      <div>
+        <button class="link-btn" data-nav="subjects" style="padding:0;margin-bottom:6px;">← Back</button>
+        <h1 id="sd-title">Subject</h1>
+      </div>
+    </div>
+    <div style="padding:0 20px;">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-muted); font-weight:700;">
+          <span id="sd-progress-label">0 / 0 topics</span>
+          <span id="sd-progress-pct">0%</span>
+        </div>
+        <div class="progress-bar"><b id="sd-progress-bar" style="width:0%"></b></div>
+      </div>
+      <div class="section-title"><h2>Chapters</h2></div>
+      <div class="card" id="sd-topic-list"></div>
+      <button class="btn btn-primary btn-block" id="sd-quiz-btn" style="margin-top:16px;">📝 Practice Quiz</button>
+    </div>
+  </main>
+
+  <!-- ---------- QUIZ ---------- -->
+  <main class="view" id="view-quiz">
+    <div class="topbar">
+      <div>
+        <button class="link-btn" id="quiz-back" style="padding:0;margin-bottom:6px;">← Back</button>
+        <h1 id="quiz-title">Quiz</h1>
+      </div>
+    </div>
+    <div style="padding:0 20px;" id="quiz-body"></div>
+  </main>
+
+  <!-- ---------- PLANNER ---------- -->
+  <main class="view" id="view-planner">
+    <div class="topbar">
+      <div><div class="eyebrow">Weekly timetable</div><h1>Planner</h1></div>
+    </div>
+    <div style="padding:0 20px;">
+      <div class="day-tabs" id="planner-day-tabs"></div>
+      <div id="planner-sessions"></div>
+
+      <div class="section-title"><h2>To-do list</h2></div>
+      <div class="card" id="planner-todos"></div>
+    </div>
+    <button class="fab" id="planner-fab" title="Add">＋</button>
+  </main>
+
+  <!-- ---------- AI COACH ---------- -->
+  <main class="view" id="view-ai">
+    <div class="topbar">
+      <div><div class="eyebrow">Groq-powered</div><h1>AI Coach</h1></div>
+    </div>
+    <div style="padding:0 20px;">
+      <div id="ai-key-warning" class="api-warning" style="display:none;">
+        Add your free Groq API key to activate the coach. <button class="link" data-nav="settings">Add key in Settings →</button>
+      </div>
+      <div class="quick-prompts" id="ai-quick-prompts"></div>
+      <div class="chat-wrap" id="ai-chat"></div>
+      <div class="chat-input-row">
+        <input type="text" id="ai-input" placeholder="Ask your AI coach…">
+        <button id="ai-send">➤</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ---------- PROGRESS ---------- -->
+  <main class="view" id="view-progress">
+    <div class="topbar">
+      <div><div class="eyebrow">Keep the streak alive</div><h1>Progress</h1></div>
+    </div>
+    <div style="padding:0 20px;">
+      <div class="card level-card">
+        <div class="level-head">
+          <div>
+            <div class="level-title" id="pg-level-title">Getting Started</div>
+            <div class="level-sub" id="pg-level-sub">0 XP</div>
+          </div>
+          <div class="level-badge" id="pg-level-num">1</div>
+        </div>
+        <div class="progress-bar xp-bar"><b id="pg-xp-bar" style="width:0%"></b></div>
+        <div class="level-next" id="pg-level-next"></div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-box"><div class="num" id="pg-streak">0</div><div class="lbl">Day streak</div></div>
+        <div class="stat-box"><div class="num" id="pg-sessions">0</div><div class="lbl">Sessions</div></div>
+        <div class="stat-box"><div class="num" id="pg-badges">0</div><div class="lbl">Badges</div></div>
+      </div>
+      <div class="section-title"><h2>Topics per subject</h2></div>
+      <div class="bar-chart" id="pg-bar-chart"></div>
+      <div class="section-title"><h2>Badges</h2></div>
+      <div class="badge-grid" id="pg-badge-grid"></div>
+
+      <div class="section-title"><h2>Study Circle</h2><button class="link-btn" id="pg-add-rival">＋ Add rival</button></div>
+      <p style="font-size:12px; color:var(--ink-muted); margin-top:-6px;">A local leaderboard — add friends and update their XP yourself to compare progress on this device.</p>
+      <div class="card" id="pg-leaderboard"></div>
+    </div>
+  </main>
+
+  <!-- ---------- SETTINGS ---------- -->
+  <main class="view" id="view-settings">
+    <div class="topbar">
+      <div><div class="eyebrow">You</div><h1>Settings</h1></div>
+    </div>
+    <div style="padding:0 20px;">
+      <div class="section-title"><h2>Theme</h2></div>
+      <div class="settings-theme-grid" id="settings-theme-grid"></div>
+
+      <div class="section-title"><h2>Profile</h2></div>
+      <div class="card">
+        <div class="field"><label>Name</label><input type="text" id="set-name"></div>
+        <div class="field"><label>Matric group</label>
+          <select id="set-group"></select>
+        </div>
+        <div class="field"><label>Board exam date</label><input type="date" id="set-examdate"></div>
+        <button class="btn btn-primary btn-block" id="set-save-profile">Save profile</button>
+      </div>
+
+      <div class="section-title"><h2>AI Coach</h2></div>
+      <div class="card">
+        <div class="field">
+          <label>Groq API key</label>
+          <input type="text" id="set-apikey" placeholder="gsk_...">
+        </div>
+        <p id="set-apikey-note" style="font-size:12px; color:var(--ink-muted); line-height:1.5; margin:-6px 0 12px;">
+          Free at console.groq.com/keys. Stored only in this browser — never sent anywhere except Groq's API.
+        </p>
+        <button class="btn btn-primary btn-block" id="set-save-key">Save key</button>
+      </div>
+
+      <div class="section-title"><h2>Data</h2></div>
+      <div class="card">
+        <div class="settings-row">
+          <div><div class="slabel">Quick tour</div><div class="ssub">Replay the app walkthrough</div></div>
+          <button class="btn btn-ghost" id="set-replay-tour">Replay</button>
+        </div>
+        <div class="settings-row">
+          <div><div class="slabel">Export backup</div><div class="ssub">Download your data as JSON</div></div>
+          <button class="btn btn-ghost" id="set-export">Export</button>
+        </div>
+        <div class="settings-row">
+          <div><div class="slabel">Reset app</div><div class="ssub">Erase everything and start over</div></div>
+          <button class="btn btn-ghost" id="set-reset" style="color:var(--danger); border-color:var(--danger);">Reset</button>
+        </div>
+      </div>
+      <p style="text-align:center; font-size:11px; color:var(--ink-muted); margin-top:24px;">Rehearsal · Built for AI App Development competition</p>
+    </div>
+  </main>
+
+  <!-- ---------- BOTTOM NAV ---------- -->
+  <nav class="bottom-nav">
+    <button data-nav="home" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+      Home
+    </button>
+    <button data-nav="subjects">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Subjects
+    </button>
+    <button data-nav="planner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Planner
+    </button>
+    <button data-nav="ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.8 4.6L18 8l-4.2 1.4L12 14l-1.8-4.6L6 8l4.2-1.4L12 2z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/></svg>
+      AI Coach
+    </button>
+    <button data-nav="progress">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+      Progress
+    </button>
+    <button data-nav="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<!-- ===================== ADD SESSION SHEET ===================== -->
+<div class="sheet-backdrop" id="session-sheet-backdrop">
+  <div class="sheet">
+    <h3>Add study session</h3>
+    <div class="field"><label>Subject</label><select id="ses-subject"></select></div>
+    <div class="field"><label>Day</label><select id="ses-day">
+      <option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option>
+    </select></div>
+    <div class="field"><label>Start time</label><input type="time" id="ses-time" value="17:00"></div>
+    <div class="field"><label>Duration (minutes)</label><input type="number" id="ses-duration" value="45" min="10" step="5"></div>
+    <button class="btn btn-primary btn-block" id="ses-save">Add session</button>
+  </div>
+</div>
+
+<!-- ===================== ADD TODO SHEET ===================== -->
+<div class="sheet-backdrop" id="todo-sheet-backdrop">
+  <div class="sheet">
+    <h3>Add to-do</h3>
+    <div class="field"><label>What do you need to do?</label><input type="text" id="todo-text" placeholder="e.g. Solve past paper — Physics Ch.3"></div>
+    <button class="btn btn-primary btn-block" id="todo-save">Add to-do</button>
+  </div>
+</div>
+
+<!-- ===================== ADD FAB CHOICE SHEET ===================== -->
+<div class="sheet-backdrop" id="fab-sheet-backdrop">
+  <div class="sheet">
+    <h3>What would you like to add?</h3>
+    <button class="btn btn-primary btn-block" id="fab-add-session" style="margin-bottom:10px;">📅 Study session</button>
+    <button class="btn btn-ghost btn-block" id="fab-add-todo">✅ To-do item</button>
+  </div>
+</div>
+
+<!-- ===================== ADD RIVAL SHEET ===================== -->
+<div class="sheet-backdrop" id="rival-sheet-backdrop">
+  <div class="sheet">
+    <h3 id="rival-sheet-title">Add rival</h3>
+    <div class="field"><label>Name</label><input type="text" id="rival-name" placeholder="e.g. Hamza"></div>
+    <div class="field"><label>XP</label><input type="number" id="rival-xp" placeholder="0" min="0"></div>
+    <button class="btn btn-primary btn-block" id="rival-save">Save</button>
+  </div>
+</div>
+
+<!-- ===================== ONBOARDING TOUR ===================== -->
+<div class="sheet-backdrop" id="tour-backdrop">
+  <div class="sheet tour-sheet">
+    <div class="tour-slides" id="tour-slides"></div>
+    <div class="tour-dots" id="tour-dots"></div>
+    <div class="tour-actions">
+      <button class="btn btn-ghost" id="tour-skip">Skip</button>
+      <button class="btn btn-primary" id="tour-next">Next</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
