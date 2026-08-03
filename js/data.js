@@ -75,21 +75,7 @@ const GROUPS = [
   },
 ];
 
-/* ------------------------------------------------------------
-   DEVELOPER SETTING — default Groq API key
-   Paste your own key below (starts with "gsk_...") so students
-   never have to add one themselves. Get a free key at
-   https://console.groq.com/keys
-
-   ⚠️ Security note: this is a client-side app with no backend,
-   so any key placed here is visible to anyone who views the
-   page source of your deployed site. That's fine for a
-   hackathon/demo with a free-tier key, but do NOT put a key
-   here that you can't afford to have used by others. For a
-   production app, put the key behind a small serverless proxy
-   instead of shipping it in the frontend.
-   ------------------------------------------------------------ */
-const DEV_API_KEY = "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"; // <-- paste your Groq API key here
+const DEV_API_KEY = "grok_api_key"; //Paste your own groq api key here
 
 const QUOTES = [
   "Consistency beats intensity. One hour today, every day, wins matric.",
